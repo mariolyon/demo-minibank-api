@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public class Amount {
     @JsonValue
-    private final long value;
+    public final long value;
 
     @JsonCreator
     public Amount(long value) {

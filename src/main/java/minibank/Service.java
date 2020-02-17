@@ -7,6 +7,7 @@ import minibank.dto.AccountDescription;
 import minibank.error.AppError;
 import minibank.error.ResultOrError;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,5 +41,20 @@ public class Service {
                     return new ResultOrError(describe(a));
                 }
         ).orElse(new ResultOrError(AppError.ACCOUNT_DOES_NOT_EXIST));
+    }
+
+    ResultOrError<List<AccountDescription>> transfer(Id id, Id recipient, Amount amount) {
+        Optional<Account> maybeFrom = accounts.get(id);
+        Optional<Account> maybeTo = accounts.get(recipient);
+
+        if (maybeFrom.isPresent() && maybeTo.isPresent()) {
+            Account from = maybeFrom.get();
+            from.deposit(Amount.of(- amount.value));
+            Account to = maybeTo.get();
+            to.deposit(Amount.of(amount.value));
+            return new ResultOrError(List.of(describe(from), describe(to)));
+        } else {
+            return new ResultOrError(AppError.ACCOUNT_DOES_NOT_EXIST);
+        }
     }
 }

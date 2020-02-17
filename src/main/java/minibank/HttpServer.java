@@ -31,6 +31,7 @@ public class HttpServer extends AllDirectives {
 
     PathMatcher1<Integer> accountMatcher = PathMatchers.segment("accounts").slash(integerSegment());
     PathMatcher1<Integer> depositToAccountMatcher = PathMatchers.segment("accounts").slash(integerSegment()).slash("deposit");
+    PathMatcher1<Integer> transferToAccountMatcher = PathMatchers.segment("accounts").slash(integerSegment()).slash("transfer");
 
     Route createRoute() {
         return concat(
@@ -58,6 +59,18 @@ public class HttpServer extends AllDirectives {
                                                     Jackson.<AccountDescription>marshaller()) :
                                             complete(StatusCodes.UNPROCESSABLE_ENTITY);
                                 }))),
+                path(transferToAccountMatcher, id ->
+                        post(() ->
+                                parameter(StringUnmarshallers.INTEGER, "amount", amount ->
+                                        parameter(StringUnmarshallers.INTEGER, "recipient", recipient ->
+                                        {
+                                            ResultOrError<List<AccountDescription>> resultOrError = service.transfer(Id.of(id), Id.of(recipient), Amount.of(amount));
+                                            return resultOrError.maybeResult.isPresent() ?
+                                                    complete(StatusCodes.OK,
+                                                            resultOrError.maybeResult.get(),
+                                                            Jackson.<List<AccountDescription>>marshaller()) :
+                                                    complete(StatusCodes.UNPROCESSABLE_ENTITY);
+                                        })))),
                 path("accounts", () ->
                         concat(post(() -> complete(StatusCodes.CREATED, service.createAccount(), Jackson.<AccountDescription>marshaller())),
                                 get(() -> complete(StatusCodes.OK, service.describeAccounts(), Jackson.<List<AccountDescription>>marshaller())))))
