@@ -11,4 +11,12 @@ public class Amount {
     public Amount(long value) {
         this.value = value;
     }
+
+    public Amount plus(Amount amount) {
+        return new Amount(this.value + amount.value);
+    }
+
+    public static Amount of(long value) {
+        return new Amount(value);
+    }
 }

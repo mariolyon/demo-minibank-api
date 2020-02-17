@@ -13,12 +13,12 @@ public class Accounts {
 
     private long nextAccountNumber = 1;
 
-    synchronized Id createAccount() {
+    synchronized Account createAccount() {
         Id id = Id.of(nextAccountNumber);
         Account account = new Account(id, new Amount(0));
         accounts.put(id, account);
         nextAccountNumber++;
-        return account.id;
+        return account;
     }
 
     Optional<Account> get(Id id) {

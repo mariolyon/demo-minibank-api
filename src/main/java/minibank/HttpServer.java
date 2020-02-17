@@ -8,8 +8,11 @@ import akka.http.javadsl.server.AllDirectives;
 import akka.http.javadsl.server.PathMatcher1;
 import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
+import akka.http.javadsl.unmarshalling.StringUnmarshallers;
+import minibank.account.Amount;
 import minibank.account.Id;
 import minibank.dto.AccountDescription;
+import minibank.error.AppError;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,25 +29,33 @@ public class HttpServer extends AllDirectives {
     }
 
     PathMatcher1<Integer> accountMatcher = PathMatchers.segment("accounts").slash(integerSegment());
+    PathMatcher1<Integer> depositToAccountMatcher = PathMatchers.segment("accounts").slash(integerSegment()).slash("deposit");
 
     Route createRoute() {
         return concat(
                 path(accountMatcher, id ->
-                        get(() ->
-                                {
+                        pathEnd(() ->
+                                get(() -> {
                                     Optional<AccountDescription> maybeAccountDescription = service.describeAccount(Id.of(id));
 
-                                    if(maybeAccountDescription.isPresent()) {
+                                    if (maybeAccountDescription.isPresent()) {
                                         AccountDescription accountDescription = maybeAccountDescription.get();
                                         return complete(StatusCodes.OK, accountDescription, Jackson.<AccountDescription>marshaller());
                                     } else {
                                         return complete(StatusCodes.UNPROCESSABLE_ENTITY);
                                     }
-                                }
-                        )),
-
+                                }))
+                ),
+                path(depositToAccountMatcher, id ->
+                        post(() ->
+                                parameter(StringUnmarshallers.INTEGER,"amount", amount ->
+                                {
+                                    Optional<AppError> maybeAppError = service.deposit(Id.of(id), Amount.of(amount));
+                                    return maybeAppError.isEmpty() ? complete(StatusCodes.OK) : complete(StatusCodes.UNPROCESSABLE_ENTITY);
+                                }))),
                 path("accounts", () ->
-                        get(() ->
-                                complete(StatusCodes.OK, service.describeAccounts(), Jackson.<List<AccountDescription>>marshaller()))));
+                        concat(post(() -> complete(StatusCodes.CREATED, service.createAccount(), Jackson.<AccountDescription>marshaller())),
+                                get(() -> complete(StatusCodes.OK, service.describeAccounts(), Jackson.<List<AccountDescription>>marshaller())))))
+                ;
     }
 }
