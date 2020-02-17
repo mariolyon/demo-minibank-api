@@ -18,12 +18,13 @@ public class Main {
     public static void main(String... args) throws IOException {
         ActorSystem system = ActorSystem.create("routes");
 
+        Accounts accounts = new Accounts();
+        Service service = new Service(accounts);
+        HttpServer httpServer = new HttpServer(service);
+
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
-
-        HttpServer app = new HttpServer();
-
-        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
+        final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = httpServer.createRoute().flow(system, materializer);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
                 ConnectHttp.toHost("localhost", 8080), materializer);
 
