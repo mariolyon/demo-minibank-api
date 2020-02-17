@@ -1,10 +1,12 @@
 package minibank;
 
+import minibank.account.Account;
+import minibank.account.Amount;
+import minibank.account.Id;
+
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Accounts {
     private HashMap<Id, Account> accounts = new HashMap<>();
@@ -12,7 +14,7 @@ public class Accounts {
     private long nextAccountNumber = 1;
 
     synchronized Id createAccount() {
-        Id id = new Id(nextAccountNumber);
+        Id id = Id.of(nextAccountNumber);
         Account account = new Account(id, new Amount(0));
         accounts.put(id, account);
         nextAccountNumber++;

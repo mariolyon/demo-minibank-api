@@ -8,6 +8,8 @@ import akka.http.javadsl.server.AllDirectives;
 import akka.http.javadsl.server.PathMatcher1;
 import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
+import minibank.account.Id;
+import minibank.dto.AccountDescription;
 
 import java.util.List;
 import java.util.Optional;

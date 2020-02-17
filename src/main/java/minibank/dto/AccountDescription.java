@@ -1,16 +1,16 @@
-package minibank;
+package minibank.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import minibank.account.Amount;
+import minibank.account.Id;
 
 public class AccountDescription implements Comparable<AccountDescription> {
     final Id id;
     final Amount amount;
 
-    static final AccountDescription NULL =  new AccountDescription(Id.NULL, Amount.NULL);
-
     @JsonCreator
-    AccountDescription(@JsonProperty("id") Id id, @JsonProperty("amount") Amount amount) {
+    public AccountDescription(@JsonProperty("id") Id id, @JsonProperty("amount") Amount amount) {
         this.id = id;
         this.amount = amount;
     }
