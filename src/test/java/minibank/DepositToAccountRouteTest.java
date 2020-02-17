@@ -13,7 +13,8 @@ public class DepositToAccountRouteTest extends JUnitRouteTest {
         accounts.createAccount();
         Service service = new Service(accounts);
         TestRoute route = testRoute(new HttpServer(service).createRoute());
-        route.run(HttpRequest.POST("/accounts/1/deposit?amount=20")).assertStatusCode(StatusCodes.OK);
+        route.run(HttpRequest.POST("/accounts/1/deposit?amount=20")).assertStatusCode(StatusCodes.OK).assertEntity("{\"amount\":20,\"id\":1}");;
+        route.run(HttpRequest.POST("/accounts/1/deposit?amount=30")).assertStatusCode(StatusCodes.OK).assertEntity("{\"amount\":50,\"id\":1}");;
     }
 
     @Test

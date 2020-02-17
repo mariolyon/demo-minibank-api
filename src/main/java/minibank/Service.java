@@ -5,6 +5,7 @@ import minibank.account.Amount;
 import minibank.account.Id;
 import minibank.dto.AccountDescription;
 import minibank.error.AppError;
+import minibank.error.ResultOrError;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,11 +34,11 @@ public class Service {
         return new AccountDescription(account.id, account.amount);
     }
 
-    Optional<AppError> deposit(Id id, Amount amount) {
+    ResultOrError<AccountDescription> deposit(Id id, Amount amount) {
         return accounts.get(id).map(a -> {
                     a.deposit(amount);
-                    return Optional.<AppError>empty();
+                    return new ResultOrError(describe(a));
                 }
-        ).orElse(Optional.of(AppError.ACCOUNT_DOES_NOT_EXIST));
+        ).orElse(new ResultOrError(AppError.ACCOUNT_DOES_NOT_EXIST));
     }
 }

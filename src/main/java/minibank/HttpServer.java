@@ -13,6 +13,7 @@ import minibank.account.Amount;
 import minibank.account.Id;
 import minibank.dto.AccountDescription;
 import minibank.error.AppError;
+import minibank.error.ResultOrError;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,10 +49,14 @@ public class HttpServer extends AllDirectives {
                 ),
                 path(depositToAccountMatcher, id ->
                         post(() ->
-                                parameter(StringUnmarshallers.INTEGER,"amount", amount ->
+                                parameter(StringUnmarshallers.INTEGER, "amount", amount ->
                                 {
-                                    Optional<AppError> maybeAppError = service.deposit(Id.of(id), Amount.of(amount));
-                                    return maybeAppError.isEmpty() ? complete(StatusCodes.OK) : complete(StatusCodes.UNPROCESSABLE_ENTITY);
+                                    ResultOrError<AccountDescription> resultOrError = service.deposit(Id.of(id), Amount.of(amount));
+                                    return resultOrError.maybeResult.isPresent() ?
+                                            complete(StatusCodes.OK,
+                                                    resultOrError.maybeResult.get(),
+                                                    Jackson.<AccountDescription>marshaller()) :
+                                            complete(StatusCodes.UNPROCESSABLE_ENTITY);
                                 }))),
                 path("accounts", () ->
                         concat(post(() -> complete(StatusCodes.CREATED, service.createAccount(), Jackson.<AccountDescription>marshaller())),
