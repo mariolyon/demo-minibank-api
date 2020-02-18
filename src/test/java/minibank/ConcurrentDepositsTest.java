@@ -10,9 +10,9 @@ import java.util.stream.IntStream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ConcurrentDepositTest {
+public class ConcurrentDepositsTest {
     @Test
     public void shouldSupportConcurrentDeposits() {
         Accounts accounts =  new Accounts();
@@ -45,6 +45,6 @@ public class ConcurrentDepositTest {
         executor.shutdown();
 
         await().atMost(5, SECONDS).until(() -> executor.isShutdown());
-        assertSame(expectedAmount, service.describeAccount(accountId).get().getAmount());
+        assertEquals(expectedAmount, service.describeAccount(accountId).get().getAmount());
     }
 }

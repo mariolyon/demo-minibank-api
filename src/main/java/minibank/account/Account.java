@@ -9,7 +9,7 @@ public class Account {
         this.amount = amount;
     }
 
-    public void deposit(Amount amount) {
+    public synchronized void deposit(Amount amount) {
         this.amount = this.amount.plus(amount);
     }
 }
