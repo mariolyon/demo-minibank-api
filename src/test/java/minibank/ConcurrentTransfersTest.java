@@ -18,42 +18,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConcurrentTransfersTest {
-    @Test
-    public void shouldSupportConcurrentTransfers() {
-        Accounts accounts = new Accounts();
-        accounts.createAccount();
-        accounts.createAccount();
-
-        Service service = new Service(accounts);
-
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        Id account1 = Id.of(1);
-        Id account2 = Id.of(2);
-
-        int countOfDeposits = 100;
-        Amount transferAmount = Amount.of(1);
-
-        service.deposit(account1, Amount.of(100));
-        IntStream.range(0, countOfDeposits).
-                forEach(i ->
-                        executor.submit(() -> service.transfer(account1, account2, transferAmount)));
-
-        Amount expectedAmountInFromAccount = Amount.of(0);
-        Amount expectedAmountInToAccount = Amount.of(countOfDeposits * transferAmount.value);
-
-        try {
-            executor.awaitTermination(5, SECONDS);
-        } catch (InterruptedException e) {
-
-        }
-
-        executor.shutdown();
-
-        await().atMost(5, SECONDS).until(() -> executor.isShutdown());
-        assertEquals(expectedAmountInFromAccount, service.describeAccount(account1).get().getAmount());
-        assertEquals(expectedAmountInToAccount, service.describeAccount(account2).get().getAmount());
-    }
-
     @RepeatedTest(10)
     // this test would fail if the objects are not locked in the same order each time
     public void shouldNotHaveDeadlocks() {
@@ -99,7 +63,7 @@ public class ConcurrentTransfersTest {
 
     @RepeatedTest(10)
     // this test sometimes fails (the fromAccount goes negative) if the objects are not locked for the transfer
-    public void concurrentTransfersShouldRespectSufficientMoneyForTransferPolicy() {
+    public void shouldNotHaveRaceCondition() {
         Accounts accounts = new Accounts();
         accounts.createAccount();
         accounts.createAccount();
