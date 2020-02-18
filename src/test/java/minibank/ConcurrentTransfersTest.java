@@ -5,7 +5,6 @@ import minibank.account.Id;
 import minibank.dto.AccountDescription;
 import minibank.error.ResultOrError;
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

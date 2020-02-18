@@ -50,8 +50,19 @@ public class Service {
             Account from = maybeFrom.get();
             Account to = maybeTo.get();
 
-            synchronized (from) {
-                synchronized (to) {
+            Account accountToLockFirst;
+            Account accountToLockSecond;
+
+            if (from.id.value < to.id.value) {
+                accountToLockFirst = from;
+                accountToLockSecond = to;
+            } else {
+                accountToLockFirst = to;
+                accountToLockSecond = from;
+            }
+
+            synchronized (accountToLockFirst) {
+                synchronized (accountToLockSecond) {
                     if (from.amount.value >= amount.value) {
                         from.deposit(Amount.of(- amount.value));
                         to.deposit(Amount.of(amount.value));

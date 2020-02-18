@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class Id implements Comparable<Id> {
     @JsonValue
-    private final Long value;
+    public final Long value;
 
     public static Id of(long value) {
         return new Id(value);
