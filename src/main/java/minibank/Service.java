@@ -50,6 +50,10 @@ public class Service {
             Account from = maybeFrom.get();
             Account to = maybeTo.get();
 
+            if (from == to) {
+                return new ResultOrError(AppError.TRANSFER_HAS_SAME_SOURCE_AND_DESTINATION);
+            }
+
             Account accountToLockFirst;
             Account accountToLockSecond;
 

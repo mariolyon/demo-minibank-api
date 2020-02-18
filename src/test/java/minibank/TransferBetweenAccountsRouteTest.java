@@ -4,6 +4,8 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.testkit.JUnitRouteTest;
 import akka.http.javadsl.testkit.TestRoute;
+import minibank.account.Amount;
+import minibank.account.Id;
 import org.junit.Test;
 
 public class TransferBetweenAccountsRouteTest extends JUnitRouteTest {
@@ -54,6 +56,19 @@ public class TransferBetweenAccountsRouteTest extends JUnitRouteTest {
         accounts.createAccount();
         TestRoute route = testRoute(new HttpServer(service).createRoute());
         route.run(HttpRequest.POST("/accounts/1/transfer?recipient=2&amount=20"))
+                .assertStatusCode(StatusCodes.UNPROCESSABLE_ENTITY);
+    }
+
+
+    @Test
+    public void requestToTransferToAccountWhenTheRecipientAccountIsSameAsSource() {
+        Accounts accounts = new Accounts();
+        Service service = new Service(accounts);
+        accounts.createAccount();
+        accounts.createAccount();
+        service.deposit(Id.of(1), Amount.of(20));
+        TestRoute route = testRoute(new HttpServer(service).createRoute());
+        route.run(HttpRequest.POST("/accounts/1/transfer?recipient=1&amount=20"))
                 .assertStatusCode(StatusCodes.UNPROCESSABLE_ENTITY);
     }
 

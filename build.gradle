@@ -1,6 +1,8 @@
 plugins {
-    id 'java'
+    id 'application'
 }
+
+apply plugin : "java"
 
 group 'mlyon'
 version '1.0-SNAPSHOT'
@@ -28,4 +30,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+application {
+    mainClassName = "minibank.Main"
 }
