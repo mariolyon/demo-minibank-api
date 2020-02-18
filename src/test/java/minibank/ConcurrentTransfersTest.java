@@ -50,7 +50,9 @@ public class ConcurrentTransfersTest {
         assertEquals(expectedAmountInToAccount, service.describeAccount(account2).get().getAmount());
     }
 
-    @RepeatedTest(10)
+    @Test
+    // there is no deadlocks at the moment because only one object is locked at a time (for changes to amount)
+    // expect deadlocks to occur when both accounts are locked.
     public void shouldNotHaveDeadlocks() {
         Accounts accounts = new Accounts();
         accounts.createAccount();
