@@ -54,36 +54,31 @@ public class ConcurrentTransfersTest {
         Accounts accounts = new Accounts();
         accounts.createAccount();
         accounts.createAccount();
-        accounts.createAccount();
 
         Service service = new Service(accounts);
 
-        ExecutorService executor = Executors.newFixedThreadPool(2);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
         Id account1 = Id.of(1);
         Id account2 = Id.of(2);
         Id account3 = Id.of(3);
 
-        int countOfTransfers = 99;
+        int countOfTransfers = 100;
         Amount transferAmount = Amount.of(1);
 
         service.deposit(account1, Amount.of(100));
         service.deposit(account2, Amount.of(100));
-        service.deposit(account3, Amount.of(100));
         IntStream.range(0, countOfTransfers).
                 forEach(i -> {
-                            if (i % 3 == 0)
+                            if (i % 2 == 0)
                                 executor.submit(() -> service.transfer(account1, account2, transferAmount));
-                            else if (i % 3 == 1)
-                                executor.submit(() -> service.transfer(account2, account3, transferAmount));
                             else
-                                executor.submit(() -> service.transfer(account3, account1, transferAmount));
+                                executor.submit(() -> service.transfer(account2, account1, transferAmount));
 
                         }
                 );
 
         Amount expectedAmountInAccount1 = Amount.of(100);
         Amount expectedAmountInAccount2 = Amount.of(100);
-        Amount expectedAmountInAccount3 = Amount.of(100);
 
         try {
             executor.awaitTermination(5, SECONDS);
@@ -95,6 +90,5 @@ public class ConcurrentTransfersTest {
         await().atMost(5, SECONDS).until(() -> executor.isShutdown());
         assertEquals(expectedAmountInAccount1, service.describeAccount(account1).get().getAmount());
         assertEquals(expectedAmountInAccount2, service.describeAccount(account2).get().getAmount());
-        assertEquals(expectedAmountInAccount3, service.describeAccount(account3).get().getAmount());
     }
 }
