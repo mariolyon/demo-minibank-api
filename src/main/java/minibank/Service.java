@@ -48,13 +48,18 @@ public class Service {
 
         if (maybeFrom.isPresent() && maybeTo.isPresent()) {
             Account from = maybeFrom.get();
-            if (from.amount.value >= amount.value) {
-                from.deposit(Amount.of(- amount.value));
-                Account to = maybeTo.get();
-                to.deposit(Amount.of(amount.value));
-                return new ResultOrError(List.of(describe(from), describe(to)));
-            } else {
-                return new ResultOrError(AppError.INSUFFICIENT_FUNDS_FOR_TRANSFER);
+            Account to = maybeTo.get();
+
+            synchronized (from) {
+                synchronized (to) {
+                    if (from.amount.value >= amount.value) {
+                        from.deposit(Amount.of(- amount.value));
+                        to.deposit(Amount.of(amount.value));
+                        return new ResultOrError(List.of(describe(from), describe(to)));
+                    } else {
+                        return new ResultOrError(AppError.INSUFFICIENT_FUNDS_FOR_TRANSFER);
+                    }
+                }
             }
         } else {
             return new ResultOrError(AppError.ACCOUNT_NOT_FOUND);

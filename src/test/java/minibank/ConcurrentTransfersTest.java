@@ -2,11 +2,15 @@ package minibank;
 
 import minibank.account.Amount;
 import minibank.account.Id;
+import minibank.dto.AccountDescription;
+import minibank.error.ResultOrError;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -50,9 +54,8 @@ public class ConcurrentTransfersTest {
         assertEquals(expectedAmountInToAccount, service.describeAccount(account2).get().getAmount());
     }
 
-    @Test
-    // there is no deadlocks at the moment because only one object is locked at a time (for changes to amount)
-    // expect deadlocks to occur when both accounts are locked.
+    @RepeatedTest(10)
+    // this test would fail if the objects are not locked in the same order each time
     public void shouldNotHaveDeadlocks() {
         Accounts accounts = new Accounts();
         accounts.createAccount();
@@ -104,7 +107,7 @@ public class ConcurrentTransfersTest {
 
         Service service = new Service(accounts);
 
-        ExecutorService executor = Executors.newFixedThreadPool(2);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
         Id account1 = Id.of(1);
         Id account2 = Id.of(2);
         Id account3 = Id.of(3);
@@ -114,12 +117,26 @@ public class ConcurrentTransfersTest {
         service.deposit(account3, Amount.of(100));
         Amount transferAmount = Amount.of(100);
 
-        executor.submit(() -> service.transfer(account1, account2, transferAmount));
-        executor.submit(() -> service.transfer(account1, account3, transferAmount));
+        AtomicLong expectedValueInAccount1 = new AtomicLong(100);
+        AtomicLong expectedValueInAccount2 = new AtomicLong(100);
+        AtomicLong expectedValueInAccount3 = new AtomicLong(100);
 
-        Amount expectedAmountInAccount1 = Amount.of(0);
-        Amount expectedAmountInAccount2 = Amount.of(200);
-        Amount expectedAmountInAccount3 = Amount.of(100);
+        executor.submit(() -> {
+            ResultOrError<List<AccountDescription>> resultOrError  = service.transfer(account1, account2, transferAmount);
+            if (resultOrError.maybeResult.isPresent()) {
+                expectedValueInAccount1.set(0);
+                expectedValueInAccount2.set(200);
+                expectedValueInAccount3.set(100);
+            }
+        });
+        executor.submit(() -> {
+            ResultOrError<List<AccountDescription>> resultOrError  = service.transfer(account1, account3, transferAmount);
+            if (resultOrError.maybeResult.isPresent()) {
+                expectedValueInAccount1.set(0);
+                expectedValueInAccount2.set(100);
+                expectedValueInAccount3.set(200);
+            }
+        });
 
         try {
             executor.awaitTermination(5, SECONDS);
@@ -129,8 +146,10 @@ public class ConcurrentTransfersTest {
         executor.shutdown();
 
         await().atMost(5, SECONDS).until(() -> executor.isShutdown());
-        assertEquals(expectedAmountInAccount1, service.describeAccount(account1).get().getAmount());
-        assertEquals(expectedAmountInAccount2, service.describeAccount(account2).get().getAmount());
-        assertEquals(expectedAmountInAccount3, service.describeAccount(account3).get().getAmount());
+
+        //there are two possible states now depending
+        assertEquals(expectedValueInAccount1.get(), service.describeAccount(account1).get().getAmount().value);
+        assertEquals(expectedValueInAccount2.get(), service.describeAccount(account2).get().getAmount().value);
+        assertEquals(expectedValueInAccount3.get(), service.describeAccount(account3).get().getAmount().value);
     }
 }
