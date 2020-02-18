@@ -2,6 +2,7 @@ package minibank;
 
 import minibank.account.Amount;
 import minibank.account.Id;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.ExecutorService;
@@ -49,7 +50,7 @@ public class ConcurrentTransfersTest {
         assertEquals(expectedAmountInToAccount, service.describeAccount(account2).get().getAmount());
     }
 
-    @Test
+    @RepeatedTest(10)
     public void shouldNotHaveDeadlocks() {
         Accounts accounts = new Accounts();
         accounts.createAccount();
@@ -60,10 +61,9 @@ public class ConcurrentTransfersTest {
         ExecutorService executor = Executors.newFixedThreadPool(4);
         Id account1 = Id.of(1);
         Id account2 = Id.of(2);
-        Id account3 = Id.of(3);
 
         int countOfTransfers = 100;
-        Amount transferAmount = Amount.of(1);
+        Amount transferAmount = Amount.of(10);
 
         service.deposit(account1, Amount.of(100));
         service.deposit(account2, Amount.of(100));
@@ -90,5 +90,45 @@ public class ConcurrentTransfersTest {
         await().atMost(5, SECONDS).until(() -> executor.isShutdown());
         assertEquals(expectedAmountInAccount1, service.describeAccount(account1).get().getAmount());
         assertEquals(expectedAmountInAccount2, service.describeAccount(account2).get().getAmount());
+    }
+
+    @RepeatedTest(10)
+    // this test sometimes fails (the fromAccount goes negative) if the objects are not locked for the transfer
+    public void concurrentTransfersShouldRespectSufficientMoneyForTransferPolicy() {
+        Accounts accounts = new Accounts();
+        accounts.createAccount();
+        accounts.createAccount();
+        accounts.createAccount();
+
+        Service service = new Service(accounts);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        Id account1 = Id.of(1);
+        Id account2 = Id.of(2);
+        Id account3 = Id.of(3);
+
+        service.deposit(account1, Amount.of(100));
+        service.deposit(account2, Amount.of(100));
+        service.deposit(account3, Amount.of(100));
+        Amount transferAmount = Amount.of(100);
+
+        executor.submit(() -> service.transfer(account1, account2, transferAmount));
+        executor.submit(() -> service.transfer(account1, account3, transferAmount));
+
+        Amount expectedAmountInAccount1 = Amount.of(0);
+        Amount expectedAmountInAccount2 = Amount.of(200);
+        Amount expectedAmountInAccount3 = Amount.of(100);
+
+        try {
+            executor.awaitTermination(5, SECONDS);
+        } catch (InterruptedException e) {
+        }
+
+        executor.shutdown();
+
+        await().atMost(5, SECONDS).until(() -> executor.isShutdown());
+        assertEquals(expectedAmountInAccount1, service.describeAccount(account1).get().getAmount());
+        assertEquals(expectedAmountInAccount2, service.describeAccount(account2).get().getAmount());
+        assertEquals(expectedAmountInAccount3, service.describeAccount(account3).get().getAmount());
     }
 }

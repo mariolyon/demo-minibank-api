@@ -39,7 +39,7 @@ public class Service {
                     a.deposit(amount);
                     return new ResultOrError(describe(a));
                 }
-        ).orElse(new ResultOrError(AppError.ACCOUNT_DOES_NOT_EXIST));
+        ).orElse(new ResultOrError(AppError.ACCOUNT_NOT_FOUND));
     }
 
     ResultOrError<List<AccountDescription>> transfer(Id id, Id recipient, Amount amount) {
@@ -48,12 +48,16 @@ public class Service {
 
         if (maybeFrom.isPresent() && maybeTo.isPresent()) {
             Account from = maybeFrom.get();
-            from.deposit(Amount.of(- amount.value));
-            Account to = maybeTo.get();
-            to.deposit(Amount.of(amount.value));
-            return new ResultOrError(List.of(describe(from), describe(to)));
+            if (from.amount.value >= amount.value) {
+                from.deposit(Amount.of(- amount.value));
+                Account to = maybeTo.get();
+                to.deposit(Amount.of(amount.value));
+                return new ResultOrError(List.of(describe(from), describe(to)));
+            } else {
+                return new ResultOrError(AppError.INSUFFICIENT_FUNDS_FOR_TRANSFER);
+            }
         } else {
-            return new ResultOrError(AppError.ACCOUNT_DOES_NOT_EXIST);
+            return new ResultOrError(AppError.ACCOUNT_NOT_FOUND);
         }
     }
 }

@@ -48,7 +48,7 @@ public class TransferBetweenAccountsRouteTest extends JUnitRouteTest {
     }
 
     @Test
-    public void requestToTransferToAccountWhenTheReceipientAccountDoesNotExist() {
+    public void requestToTransferToAccountWhenTheRecipientAccountDoesNotExist() {
         Accounts accounts = new Accounts();
         Service service = new Service(accounts);
         accounts.createAccount();
@@ -56,4 +56,16 @@ public class TransferBetweenAccountsRouteTest extends JUnitRouteTest {
         route.run(HttpRequest.POST("/accounts/1/transfer?recipient=2&amount=20"))
                 .assertStatusCode(StatusCodes.UNPROCESSABLE_ENTITY);
     }
+
+    @Test
+    public void requestToTransferToAccountWhenTheAccountDoesNotHaveEnouhgFunds() {
+        Accounts accounts = new Accounts();
+        accounts.createAccount();
+        accounts.createAccount();
+        Service service = new Service(accounts);
+        TestRoute route = testRoute(new HttpServer(service).createRoute());
+        route.run(HttpRequest.POST("/accounts/1/deposit?amount=50")).assertStatusCode(StatusCodes.OK).assertEntity("{\"amount\":50,\"id\":1}");;
+        route.run(HttpRequest.POST("/accounts/1/transfer?amount=60&recipient=2")).assertStatusCode(StatusCodes.UNPROCESSABLE_ENTITY);
+    }
+
 }
