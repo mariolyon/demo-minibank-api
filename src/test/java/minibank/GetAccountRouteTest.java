@@ -3,7 +3,6 @@ package minibank;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.testkit.JUnitRouteTest;
-import akka.http.javadsl.testkit.TestRoute;
 import org.junit.Test;
 
 public class GetAccountRouteTest extends JUnitRouteTest {

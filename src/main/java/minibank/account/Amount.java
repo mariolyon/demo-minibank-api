@@ -3,8 +3,6 @@ package minibank.account;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import java.util.Objects;
-
 public class Amount {
     @JsonValue
     public final long value;

@@ -12,7 +12,6 @@ import akka.http.javadsl.unmarshalling.StringUnmarshallers;
 import minibank.account.Amount;
 import minibank.account.Id;
 import minibank.dto.AccountDescription;
-import minibank.error.AppError;
 import minibank.error.ResultOrError;
 
 import java.util.List;

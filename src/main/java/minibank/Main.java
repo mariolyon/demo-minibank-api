@@ -9,7 +9,6 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
-import minibank.HttpServer;
 
 import java.io.IOException;
 import java.util.concurrent.CompletionStage;
