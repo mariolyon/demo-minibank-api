@@ -13,6 +13,10 @@ repositories {
     mavenCentral()
 }
 
+compileJava {
+    options.compilerArgs += ["-Xlint:unchecked"]
+}
+
 dependencies {
     compile group: 'com.typesafe.akka', name: 'akka-http_2.12',   version: '10.1.11'
     compile group: 'com.typesafe.akka', name: 'akka-stream_2.12', version: '2.5.26'

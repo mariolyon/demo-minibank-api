@@ -30,9 +30,7 @@ public class ConcurrentDepositsTest {
         IntStream.range(0, countOfDeposits).
                 forEach(i ->
                         executor.submit(
-                                () -> {
-                                    return service.deposit(accountId, depositAmount);
-                                }));
+                                () -> service.deposit(accountId, depositAmount)));
 
         Amount expectedAmount = Amount.of(countOfDeposits * depositAmount.value);
 

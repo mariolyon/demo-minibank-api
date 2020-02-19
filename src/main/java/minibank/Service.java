@@ -37,9 +37,9 @@ public class Service {
     ResultOrError<AccountDescription> deposit(Id id, Amount amount) {
         return accounts.get(id).map(a -> {
                     a.deposit(amount);
-                    return new ResultOrError(describe(a));
+                    return new ResultOrError<>(describe(a));
                 }
-        ).orElse(new ResultOrError(AppError.ACCOUNT_NOT_FOUND));
+        ).orElse(new ResultOrError<>(AppError.ACCOUNT_NOT_FOUND));
     }
 
     ResultOrError<List<AccountDescription>> transfer(Id id, Id recipient, Amount amount) {
@@ -51,7 +51,7 @@ public class Service {
             Account to = maybeTo.get();
 
             if (from == to) {
-                return new ResultOrError(AppError.TRANSFER_HAS_SAME_SOURCE_AND_DESTINATION);
+                return new ResultOrError<>(AppError.TRANSFER_HAS_SAME_SOURCE_AND_DESTINATION);
             }
 
             Account accountToLockFirst;
@@ -70,14 +70,14 @@ public class Service {
                     if (from.amount.value >= amount.value) {
                         from.deposit(Amount.of(- amount.value));
                         to.deposit(Amount.of(amount.value));
-                        return new ResultOrError(List.of(describe(from), describe(to)));
+                        return new ResultOrError<>(List.of(describe(from), describe(to)));
                     } else {
-                        return new ResultOrError(AppError.INSUFFICIENT_FUNDS_FOR_TRANSFER);
+                        return new ResultOrError<>(AppError.INSUFFICIENT_FUNDS_FOR_TRANSFER);
                     }
                 }
             }
         } else {
-            return new ResultOrError(AppError.ACCOUNT_NOT_FOUND);
+            return new ResultOrError<>(AppError.ACCOUNT_NOT_FOUND);
         }
     }
 }
